@@ -1,25 +1,72 @@
-import logo from './logo.svg';
 import './App.css';
+import {Component} from 'react';
+class App extends Component {
+ 
+ constructor(props) {
+   super(props);
+   this.state = {
+     notes: []
+   }
+ }
 
-function App() {
+ API_URL="http://localhost:5038/";
+
+ componentDidMount() {
+  this.refreshNotes();
+ }
+
+ async refreshNotes() {
+  fetch(this.API_URL+ "api/todoapp/GetNotes").then(response => response.json()).then(data => {
+    this.setState({notes:data});
+  })
+}
+
+
+addClick = async () => {
+  const newNotesInput = document.getElementById("newNotes");
+  if (newNotesInput) {
+    const newNotes = newNotesInput.value;
+    const data = new FormData();
+    data.append('notes', newNotes);
+
+    fetch(this.API_URL + "api/todoapp/AddNotes", {
+      method: 'POST',
+      body: data
+    }).then(res => res.json())
+      .then((result) => {
+        alert(result);
+        this.refreshNotes();
+      });
+  }
+};
+
+async deleteClick(id) {
+
+  fetch(this.API_URL+ "api/todoapp/DeleteNotes?id=" + id, {
+    method: 'DELETE',
+  }).then(res => res.json())
+  .then((result) => {
+    alert(result)
+    this.refreshNotes();
+  })
+}
+
+render() {
+  const { notes } = this.state;
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
+      <h2>Todo App</h2>
+      <input id="newNotes" />&nbsp;
+      <button onClick={this.addClick}>Add Notes</button>
+      {notes.map((note) => (
+        <p key={note.id}>
+          <b>* {note.description}</b>&nbsp;
+          <button onClick={() => this.deleteClick(note.id)}>Delete Notes</button>
         </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      ))}
     </div>
   );
 }
-
+}
 export default App;
+
